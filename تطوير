@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مملكة الغزلان</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- واجهة الدخول -->
+  <div id="login-page">
+    <h1>مرحباً بك في مملكة الغزلان</h1>
+    <button id="loginBtn">تسجيل الدخول</button>
+  </div>
+
+  <!-- شاشة الدردشة -->
+  <div id="chat-page" style="display:none;">
+    <h1>الدردشة مع الأصدقاء</h1>
+    <div id="chatBox"></div>
+    <input type="text" id="chatInput" placeholder="اكتب رسالتك...">
+    <button id="sendBtn">إرسال</button>
+    <button id="giftBtn">إرسال هدية</button>
+    <button id="videoCallBtn">اتصال فيديو</button>
+    <button id="logoutBtn">تسجيل الخروج</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>body {
+  font-family: Arial, sans-serif;
+  direction: rtl;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+#login-page {
+  padding-top: 100px;
+}
+
+#chat-page {
+  display: block;
+  padding-top: 50px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+#chatBox {
+  border: 1px solid #ccc;
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+#chatInput {
+  width: 80%;
+  padding: 10px;
+}// استعلامات DOM
+const loginBtn = document.getElementById("loginBtn");
+const sendBtn = document.getElementById("sendBtn");
+const giftBtn = document.getElementById("giftBtn");
+const videoCallBtn = document.getElementById("videoCallBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const chatBox = document.getElementById("chatBox");
+const chatInput = document.getElementById("chatInput");
+
+// تسجيل الدخول
+loginBtn.addEventListener("click", () => {
+  document.getElementById("login-page").style.display = "none";
+  document.getElementById("chat-page").style.display = "block";
+});
+
+// إرسال رسالة
+sendBtn.addEventListener("click", () => {
+  const message = chatInput.value;
+  const messageElement = document.createElement("div");
+  messageElement.textContent = `أنت: ${message}`;
+  chatBox.appendChild(messageElement);
+  chatInput.value = '';
+  chatBox.scrollTop = chatBox.scrollHeight; // لتحريك الدردشة للأسفل تلقائيًا
+});
+
+// إرسال هدية
+giftBtn.addEventListener("click", () => {
+  alert("تم إرسال هدية!");
+});
+
+// مكالمة فيديو
+videoCallBtn.addEventListener("click", () => {
+  alert("تم بدء المكالمة!");
+});
+
+// تسجيل الخروج
+logoutBtn.addEventListener("click", () => {
+  document.getElementById("login-page").style.display = "block";
+  document.getElementById("chat-page").style.display = "none";
+});let localStream;
+let remoteStream;
+let peerConnection;
+
+// إعداد WebRTC
+navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+  .then(stream => {
+    localStream = stream;
+    // عرض الفيديو المحلي للمستخدم
+    document.getElementById("localVideo").srcObject = stream;
+  })
+  .catch(error => console.log('Error accessing webcam:', error));
+
+// الاتصال بشخص آخر
+function startVideoCall() {
+  peerConnection = new RTCPeerConnection();
+
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+  });
+
+  // تجهيز الفيديو للمستلم
+  peerConnection.ontrack = event => {
+    remoteStream = event.streams[0];
+    document.getElementById("remoteVideo").srcObject = remoteStream;
+  };
+
+  peerConnection.createOffer()
+    .then(offer => {
+      return peerConnection.setLocalDescription(offer);
+    })
+    .then(() => {
+      // إرسال العرض إلى الطرف الآخر (يتطلب خادم إشارات)
+    });
+}const express = require('express');
+const axios = require('axios');
+const app = express();
+const port = 3000;
+
+app.use(express.json());
+
+app.post('/payment', (req, res) => {
+  const { amount, userPhoneNumber } = req.body;
+  
+  // هنا يتم استدعاء API فودافون كاش (هذا مجرد مثال)
+  axios.post('https://api.vodafone.com.eg/payment', {
+    amount,
+    userPhoneNumber
+  })
+  .then(response => {
+    res.send({ message: 'تم الدفع بنجاح!', data: response.data });
+  })
+  .catch(error => {
+    res.status(500).send({ message: 'حدث خطأ!', error: error.message });
+  });
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
